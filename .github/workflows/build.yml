@@ -10,6 +10,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    name: bundle code
+
     env:
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -21,6 +23,9 @@ jobs:
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      - uses: unfor19/install-aws-cli-action@v1
+        with:
+          version: 1.18.1
 
       - name: Run yarn install
         run: yarn install
@@ -45,13 +50,22 @@ jobs:
   #        run: chmod +x build/after_deploy.sh && build/after_deploy.sh
 
   update_import_map:
+    needs: build
+
     runs-on: ubuntu-latest
-    name: specific v1
+
+    name: update_import_map
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    strategy:
+      matrix:
+        node-version: [15.x]
+
     steps:
       - uses: actions/checkout@v2
       - id: install-aws-cli
-        uses: unfor19/install-aws-cli-action@v1
-        with:
-          version: 1.18.1
-      - run: aws --version
-        shell: bash
+
+      - run: aws --version && ls -lah dist/
