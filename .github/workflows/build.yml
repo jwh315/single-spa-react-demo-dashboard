@@ -41,8 +41,17 @@ jobs:
           bucket: single-spa-react-demo
           bucket-region: us-east-1
 
-      - name: Update import map
+  #      - name: Update import map
+  #        run: chmod +x build/after_deploy.sh && build/after_deploy.sh
+
+  update_import_map:
+    runs-on: ubuntu-latest
+    name: specific v1
+    steps:
+      - uses: actions/checkout@v2
+      - id: install-aws-cli
         uses: unfor19/install-aws-cli-action@v1
         with:
           version: 1.18.1
-        run: chmod +x build/after_deploy.sh && build/after_deploy.sh
+      - run: aws --version
+        shell: bash
