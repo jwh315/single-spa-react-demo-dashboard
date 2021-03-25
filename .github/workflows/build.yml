@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+    strategy:
+      matrix:
+        node-version: [15.x]
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      - name: Run yarn install
+        run: yarn install
+
+      - name: Run yarn build
+        run: yarn build
+
+      - name: output dist directory contents
+        run: ls -lah dist/
+
+      - name: Deploy
+        uses: reggionick/s3-deploy@v3
+        with:
+          folder: dist
+          bucket: single-spa-react-demo/dashboard
+          bucket-region: us-east-1
