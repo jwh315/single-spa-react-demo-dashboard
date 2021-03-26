@@ -1,10 +1,10 @@
-NEW_URL="https://single-spa-react-demo.s3.amazonaws.com/dashboard/${GITHUB_SHA}/cd-dashboard.js"
+NEW_URL="https://single-spa-react-demo.s3.amazonaws.com/${PROJECT}/${GITHUB_SHA}/cd-${PROJECT}.js"
 
 echo "Downloading import map from S3"
 aws s3 cp s3://single-spa-react-demo/importmap.json importmap.json
 
 echo "Updating import map to point to new version of"
-echo $(jq --arg variable "$NEW_URL" '.imports["@cd/dashboard"] = $variable' importmap.json) > importmap.json
+echo $(jq --arg ARG1 ${PROJECT} --arg ARG2 "${NEW_URL}" '.imports["@cd/${ARG1}"] = $ARG2' importmap.json) > importmap.json
 
 echo "New Url = ${NEW_URL}"
 cat importmap.json
