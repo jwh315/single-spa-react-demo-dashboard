@@ -4,6 +4,10 @@ on:
   push:
     branches: [main]
 
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
   workflow_dispatch:
 
 jobs:
@@ -12,16 +16,11 @@ jobs:
 
     name: bundle code
 
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
     strategy:
       matrix:
         node-version: [15.x]
 
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
       - uses: unfor19/install-aws-cli-action@v1
         with:
@@ -39,36 +38,22 @@ jobs:
       - name: move build files
         run: mv dist/*.* dist/dashboard/${GITHUB_SHA}
 
-      - name: Deploy
+      - name: deploy
         uses: reggionick/s3-deploy@v3
         with:
           folder: dist
           bucket: single-spa-react-demo
           bucket-region: us-east-1
 
-  #      - name: Update import map
-  #        run: chmod +x build/after_deploy.sh && build/after_deploy.sh
-
-  update_import_map:
-    needs: build
-
-    runs-on: ubuntu-latest
-
-    name: update_import_map
-
-    env:
-      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-
-    strategy:
-      matrix:
-        node-version: [15.x]
-
-    steps:
-      - uses: actions/checkout@v2
-      - id: install-aws-cli
+      - name: install aws cli
         uses: unfor19/install-aws-cli-action@v1
         with:
           version: 1.18.1
-      - run: aws --version && ls -lah dist/
+
+      - name: set permissions for build
+        run: chmod +x build/after_deploy.sh
+        shell: bash
+
+      - name: version importmap
+        run: build/after_deploy.sh
         shell: bash
